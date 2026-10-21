@@ -539,6 +539,15 @@
       }
     ];
 
+    function shuffledQuestions() {
+      const shuffled = [...questions];
+      for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+      }
+      return shuffled;
+    }
+
     const scoreEl = document.getElementById("score");
     const countEl = document.getElementById("question-count");
     const percentEl = document.getElementById("progress-percent");
@@ -551,23 +560,24 @@
     const nextButton = document.getElementById("next-button");
     const questionView = document.getElementById("question-view");
     const resultsView = document.getElementById("results-view");
+    let roundQuestions = shuffledQuestions();
     let currentQuestion = 0;
     let score = 0;
     let answered = false;
 
     function renderQuestion() {
-      const question = questions[currentQuestion];
+      const question = roundQuestions[currentQuestion];
       const progress = currentQuestion + 1;
       answered = false;
-      countEl.textContent = `QUESTION ${progress} OF ${questions.length}`;
-      percentEl.textContent = `${Math.round(progress / questions.length * 100)}%`;
+      countEl.textContent = `QUESTION ${progress} OF ${roundQuestions.length}`;
+      percentEl.textContent = `${Math.round(progress / roundQuestions.length * 100)}%`;
       progressTrack.setAttribute("aria-valuenow", String(progress));
-      progressFill.style.width = `${progress / questions.length * 100}%`;
+      progressFill.style.width = `${progress / roundQuestions.length * 100}%`;
       iconEl.textContent = question.icon;
       questionEl.textContent = question.text;
       feedbackEl.textContent = "";
       nextButton.hidden = true;
-      nextButton.innerHTML = currentQuestion === questions.length - 1
+      nextButton.innerHTML = currentQuestion === roundQuestions.length - 1
         ? 'See my results <span aria-hidden="true">→</span>'
         : 'Next question <span aria-hidden="true">→</span>';
       answersEl.replaceChildren();
@@ -592,7 +602,7 @@
     function selectAnswer(selectedIndex) {
       if (answered) return;
       answered = true;
-      const question = questions[currentQuestion];
+      const question = roundQuestions[currentQuestion];
       const buttons = [...answersEl.querySelectorAll(".answer")];
       const isCorrect = selectedIndex === question.answer;
 
@@ -617,13 +627,13 @@
       questionView.hidden = true;
       countEl.textContent = "MISSION COMPLETE";
       percentEl.textContent = "100%";
-      progressTrack.setAttribute("aria-valuenow", String(questions.length));
+      progressTrack.setAttribute("aria-valuenow", String(roundQuestions.length));
       progressFill.style.width = "100%";
 
       let emoji;
       let title;
       let message;
-      if (score === questions.length) {
+      if (score === roundQuestions.length) {
         emoji = "🚀"; title = "Out of this world!"; message = "A perfect mission. The cosmos is impressed.";
       } else if (score >= 7) {
         emoji = "🪐"; title = "Stellar work!"; message = "You've got some serious cosmic knowledge.";
@@ -637,8 +647,8 @@
         <div class="result-emoji" aria-hidden="true">${emoji}</div>
         <h2>${title}</h2>
         <p class="results-copy">${message}</p>
-        <div class="result-score" aria-label="${score} out of ${questions.length} correct">
-          <span>${score}</span><span>/ ${questions.length}</span>
+        <div class="result-score" aria-label="${score} out of ${roundQuestions.length} correct">
+          <span>${score}</span><span>/ ${roundQuestions.length}</span>
         </div>
         <button class="button" id="restart-button" type="button">Play again <span aria-hidden="true">↻</span></button>
       `;
@@ -648,6 +658,7 @@
     }
 
     function restartQuiz() {
+      roundQuestions = shuffledQuestions();
       currentQuestion = 0;
       score = 0;
       scoreEl.textContent = "0";
@@ -658,7 +669,7 @@
     }
 
     nextButton.addEventListener("click", () => {
-      if (currentQuestion === questions.length - 1) {
+      if (currentQuestion === roundQuestions.length - 1) {
         showResults();
         return;
       }
